@@ -125,5 +125,29 @@ describe('MultiFileSync', () => {
         expect(JSON.parse(fs.readFileSync(path.join(tempFolder.name, "array__complexId2.json"), 'utf-8').trim())).toMatchObject(data.array[1]);
         expect(JSON.parse(fs.readFileSync(path.join(tempFolder.name, "array__complexId3.json"), 'utf-8').trim())).toMatchObject(data.array[2]);
         rimraf.sync(tempFolder.name);
-    })
+    });
+
+    it('makes sure, write deltes files with the same extension already present in the directory', async () => {
+        let data = {
+            array: [
+                {id : "complexId1", arrayProp1: "11", arrayProp2: "12"},
+                {id : "complexId2", arrayProp1: "21", arrayProp2: "22"},
+                {id : "complexId3", arrayProp1: "31", arrayProp2: "32"},
+            ]
+        };
+        let tempFolder = tmp.dirSync();
+
+        fs.writeFileSync(path.join(tempFolder.name, 'alreadyPresentFile.json'), "alreadyPresentFilejson", 'utf8');
+        fs.writeFileSync(path.join(tempFolder.name, 'alreadyPresentFile.other'), "alreadyPresentFileother", 'utf8');
+
+        const adapter = new MultiFileSync(tempFolder.name);
+        await  adapter.write(data);
+        expect(JSON.parse(fs.readFileSync(path.join(tempFolder.name, "array__complexId1.json"), 'utf-8').trim())).toMatchObject(data.array[0]);
+        expect(JSON.parse(fs.readFileSync(path.join(tempFolder.name, "array__complexId2.json"), 'utf-8').trim())).toMatchObject(data.array[1]);
+        expect(JSON.parse(fs.readFileSync(path.join(tempFolder.name, "array__complexId3.json"), 'utf-8').trim())).toMatchObject(data.array[2]);
+        expect(fs.readFileSync(path.join(tempFolder.name, "alreadyPresentFile.other"), 'utf-8').trim()).toEqual("alreadyPresentFileother");
+        expect(fs.existsSync(path.join(tempFolder.name, "alreadyPresentFile.json"))).toBeFalsy();
+        rimraf.sync(tempFolder.name);
+    });
+
 });

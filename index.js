@@ -66,6 +66,13 @@ class MultiFileSync {
         if (!fs.lstatSync(this.source).isDirectory()) {
             throw Error('source is not a folder')
         }
+        let files = fs.readdirSync(this.source);
+        let that = this;
+        files.forEach(function(filename) {
+            if (filename.endsWith(that.fileExtension)) {
+                fs.unlinkSync(path.join(that.source, filename))
+            }
+        });
         if (data !== undefined) {
             for (let [key, value] of Object.entries(data)) {
                 if (Array.isArray(value)) {
